@@ -21,11 +21,13 @@ So, regardless if ids and preferences are read in javascript from an `Advertiser
 
 ## CMP (Consent Management Platform)
 
-Usually, publishers include a CMP javascript in their web pages, to gather user consent on their behalf.
+Usually, publishers include a CMP javascript in their web pages, to gather user consent _on their behalf_.
 
 In Prebid SSO, the CMP is also responsible for **signing user preferences** and **writing** these preferences via the operator.
 
 Because it requires a secret key, a `CMP server: operator client` module is needed.
+
+Note that the CMP role can be taken by the publisher in some cases.
 
 ## Publisher
 
