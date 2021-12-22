@@ -171,27 +171,41 @@ In a case of an ad-hoc communication between two Contracting Parties, the
 
 ### The Seed object
 
+<!--partial-begin { "file": "seed-table.md" } -->
+
+The Seed represents the aggregation of the Pseudonymous-Identifiers and the
+Preferences of the user for a given content. 
+
 | Field                  | Type                                     | Details  |
 |------------------------|------------------------------------------|----------|
-| version                | Number                                   | The Prebid SSO version of the object.                                                                                                                                                                                            |
-| transaction_id         | String                                   | A GUID in a String format dedicated to the share of the Prebid SSO data for one Addressable Content.                                                                                                                                    |
-| preferences            | Preferences object                       | The Preferences of the user.                                                                                                                                                                                                            |
-| identifiers            | Array of Pseudonymous-Identifier objects | The Pseudonymous-Identifiers of the user. For now, it only contains a Prebid ID.                                                                                                                                                        |
+| version                | Number                                   | The Prebid SSO version of the object.|
+| transaction_id         | String                                   | A GUID in a String format dedicated to the share of the Prebid SSO data for one Addressable Content.|
+| preferences            | Preferences object                       | The Preferences of the user.|
+| identifiers            | Array of Pseudonymous-Identifier objects | The Pseudonymous-Identifiers of the user. For now, it only contains a Prebid ID.|
 | source                 | Source object                            | The source contains data for identifying and trusting the Publisher.<br /><table><tr><th>Field</th><th>Type</th><th>Details</th></tr><tr><td>domain</td><td>String</td><td>The domain of the Root Party (Publisher in most of the cases).</td></tr><tr><td>timestamp</td><td>Integer</td><td>The timestamp of the signature.</td></tr><tr><td>signature</td><td>String</td><td>Encoded signature in UTF-8 of the Root Party/Publisher.</td></tr></table>|
-
+<!--partial-end-->
 
 ### The Preferences object
 
+<!--partial-begin { "file": "preferences-table.md" } -->
+The Preferences object list all the preferences of a user in a dictionary. For
+now, there is only one preference ("opt-in").
+
 | Field   | Type                   | Details                                   |
 |---------|------------------------|-------------------------------------------|
-| version | Number                 | The Prebid SSO version of the object.                                                                                                                                                                       |
+| version | Number                 | The Prebid SSO version of the object.     |
 | data    | Dictionary             | The key is a string and represents the name of the preference. <br /> The values represent the value of the preference. <br /> For now there is only one preference named "optin" and its value is a boolean.|
 | source  | Source object          | The source contains the data for identifying and trusting the CMP that signed lastly the Preferences.<br /> <table><tr><th>Field</th><th>Type</th><th>Details</th></tr><tr><td>domain</td><td>String</td><td>The domain of the CMP.</td></tr><tr><td>timestamp</td><td>Integer</td><td>The timestamp of the signature.</td></tr><tr><td>signature</td><td>String</td><td>Encoded signature in UTF-8 of the CMP.</td></tr></table>|
+<!--partial-end-->
 
 Note that the "data" field is a simple dictionnary.
 
 
 ### The Identifier object
+
+<!--partial-begin { "file": "identifier-table.md" } -->
+The Pseudonymous-Identifier object represent one identifier for the user. For
+now, there is one type possible ("prebid_id").
 
 | Field   | Type          | Details                                            |
 |---------|---------------|----------------------------------------------------|
@@ -199,6 +213,7 @@ Note that the "data" field is a simple dictionnary.
 | type    | String        | The type of Pseudonymous-Identifier. For now, there is only one: "prebid_id".                                                    |
 | value   | String        | The Pseudonymous-Identifier value in UTF-8.                                                                                      |
 | source  | Source object | The Source contains all the data for identifying and trusting the Operator that generated the Pseudonymous-Identifier. <br /> <table><tr><th>Field</th><th>Type</th><th>Details</th></tr><tr><td>domain</td><td>String</td><td>The domain of the Operator.</td></tr><tr><td>timestamp</td><td>Integer</td><td>The timestamp of the signature.</td></tr><tr><td>signature</td><td>String</td><td>Encoded signature in UTF-8 of the Operator.</td></tr></table>|
+<!--partial-end-->
 
 ## The Transaction Result object
 
