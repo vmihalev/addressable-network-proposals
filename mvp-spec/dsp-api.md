@@ -171,7 +171,7 @@ In a case of an ad-hoc communication between two Contracting Parties, the
 
 ### The Seed object
 
-<!--partial-begin { "file": "seed-table.md" } -->
+<!--partial-begin { "files": [ "seed-table.md" ] } -->
 
 The Seed represents the aggregation of the Pseudonymous-Identifiers and the
 Preferences of the user for a given content. 
@@ -187,7 +187,7 @@ Preferences of the user for a given content.
 
 ### The Preferences object
 
-<!--partial-begin { "file": "preferences-table.md" } -->
+<!--partial-begin { "files": [ "preferences-table.md" ] } -->
 The Preferences object list all the preferences of a user in a dictionary. For
 now, there is only one preference ("opt-in").
 
@@ -203,7 +203,7 @@ Note that the "data" field is a simple dictionnary.
 
 ### The Identifier object
 
-<!--partial-begin { "file": "identifier-table.md" } -->
+<!--partial-begin { "files": [ "identifier-table.md" ] } -->
 The Pseudonymous-Identifier object represent one identifier for the user. For
 now, there is one type possible ("prebid_id").
 

@@ -42,7 +42,7 @@ sequenceDiagram
     participant User as User
     participant Publisher as Publisher
     participant ACS as Addressable Content Server
-    participant AS as Ad Server
+    participant AS as Ad Server<br/>or<br/>Prebid.js
 
     User->>Publisher: Query a webpage
     Publisher->>ACS: Ask for generating Seeds and signing the Root Transmissions.
@@ -83,7 +83,7 @@ Example:
 
 ```json
 {
-    "count": 1,
+    "count": 2,
     "cookies": [
         <cookie 1>,
         <cookie 2>,
@@ -98,7 +98,7 @@ The response will be composed of the following:
 | seeds    | Array of Seeds            | Seeds that are going to be used to transmit SSO Data for each Addressable Content. |
 
 
-<!--partial-begin { "file": "seed-table.md" } -->
+<!--partial-begin { "files": [ "seed-table.md" ] } -->
 
 The Seed represents the aggregation of the Pseudonymous-Identifiers and the
 Preferences of the user for a given content. 
@@ -112,7 +112,7 @@ Preferences of the user for a given content.
 | source                 | Source object                            | The source contains data for identifying and trusting the Publisher.<br /><table><tr><th>Field</th><th>Type</th><th>Details</th></tr><tr><td>domain</td><td>String</td><td>The domain of the Root Party (Publisher in most of the cases).</td></tr><tr><td>timestamp</td><td>Integer</td><td>The timestamp of the signature.</td></tr><tr><td>signature</td><td>String</td><td>Encoded signature in UTF-8 of the Root Party/Publisher.</td></tr></table>|
 <!--partial-end-->
 
-<!--partial-begin { "file": "preferences-table.md" } -->
+<!--partial-begin { "files": [ "preferences-table.md" ] } -->
 The Preferences object list all the preferences of a user in a dictionary. For
 now, there is only one preference ("opt-in").
 
@@ -123,7 +123,7 @@ now, there is only one preference ("opt-in").
 | source  | Source object          | The source contains the data for identifying and trusting the CMP that signed lastly the Preferences.<br /> <table><tr><th>Field</th><th>Type</th><th>Details</th></tr><tr><td>domain</td><td>String</td><td>The domain of the CMP.</td></tr><tr><td>timestamp</td><td>Integer</td><td>The timestamp of the signature.</td></tr><tr><td>signature</td><td>String</td><td>Encoded signature in UTF-8 of the CMP.</td></tr></table>|
 <!--partial-end-->
 
-<!--partial-begin { "file": "identifier-table.md" } -->
+<!--partial-begin { "files": [ "identifier-table.md" ] } -->
 The Pseudonymous-Identifier object represent one identifier for the user. For
 now, there is one type possible ("prebid_id").
 
@@ -136,43 +136,66 @@ now, there is one type possible ("prebid_id").
 <!--partial-end-->
 
 Example:
-```json 
-[
+<!--partial-begin { "files": [ "seed.json", "body-id-and-preferences.json" ], "jq": "{ seeds: [ .[0] , .[0]  ] } +  .[1]  | .seeds[1].transaction_id += 1" } -->
+```json
+{
+  "seeds": [
     {
-        "version": 0,
-        "transaction_id": 1234567,
-        "identifiers": [
-            {
-                "version": 0,
-                "type": "prebid_id",
-                "value": "7435313e-caee-4889-8ad7-0acd0114ae3c",
-                "source": {
-                    "domain": "operator0.com",
-                    "timestamp": 1639580000,
-                    "signature": "12345_signature"
-                }
-            }
-        ],
-        "preferences": {
-            "data": { 
-                "opt_in": true 
-            },
-            "source": {
-                "domain": "cmp1.com",
-                "timestamp": 1639581000,
-                "signature": "12345_signature"
-            }
-        },
-        "source": {
-            "domain": "publisher.com",
-            "timestamp": 1639582000,
-            "signature": "12345_signature"
-        }
+      "version": 0,
+      "transaction_id": 1234567,
+      "source": {
+        "domain": "publisher.com",
+        "timestamp": 1639582000,
+        "signature": "12345_signature"
+      }
+    },
+    {
+      "version": 0,
+      "transaction_id": 1234568,
+      "source": {
+        "domain": "publisher.com",
+        "timestamp": 1639582000,
+        "signature": "12345_signature"
+      }
     }
-]
-````
+  ],
+  "body": {
+    "preferences": {
+      "version": 1,
+      "data": {
+        "opt_in": true
+      },
+      "source": {
+        "domain": "cmpC.com",
+        "timestamp": 1639643112,
+        "signature": "preferences_signature_xyz12345"
+      }
+    },
+    "identifiers": [
+      {
+        "version": 1,
+        "type": "prebid_id",
+        "value": "7435313e-caee-4889-8ad7-0acd0114ae3c",
+        "source": {
+          "domain": "operator0.com",
+          "timestamp": 1639643110,
+          "signature": "prebid_id_signature_xyz12345"
+        }
+      }
+    ]
+  }
+}
+```
+<!--partial-end-->
+
+#### Offering inventory with an Ad Server solution
 
 
+#### Offering inventory with Prebid.js
+
+
+
+##
 
 ## CMP
 
