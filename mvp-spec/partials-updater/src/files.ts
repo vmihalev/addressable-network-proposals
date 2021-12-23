@@ -6,6 +6,8 @@ const PartialsDir = path.join(RootPath.path, "..", "partials");
 const DocumentsDir = path.join(RootPath.path, "..");
 const DocumentExts = [ ".md" ]
 
+export const getPartialPath = (file: string): string => path.join(PartialsDir, file);
+
 /** Load a partial based on its name. */
 export const loadPartial = (file: string): string => loadFile(file, PartialsDir);
 

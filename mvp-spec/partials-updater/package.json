@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@types/app-root-path": "^1.2.4",
-    "app-root-path": "^3.0.0"
+    "app-root-path": "^3.0.0",
+    "node-jq": "^2.1.0"
   }
 }
