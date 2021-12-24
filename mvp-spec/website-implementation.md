@@ -95,22 +95,24 @@ The response will be composed of the following:
 
 | Field    | Type                      | Details                               |
 |----------|---------------------------|---------------------------------------|
-| seeds    | Array of Seeds            | Seeds that are going to be used to transmit SSO Data for each Addressable Content. |
+| seeds    | Array of Seed objects     | Digital signatures of the Transaction Id |
+| body     | Body object               | Gather all the Prebid SSO Data         |
 
 
-<!--partial-begin { "files": [ "seed-table.md" ] } -->
-
-The Seed represents the aggregation of the Pseudonymous-Identifiers and the
-Preferences of the user for a given content. 
+The Seed object:
 
 | Field                  | Type                                     | Details  |
 |------------------------|------------------------------------------|----------|
 | version                | Number                                   | The Prebid SSO version of the object.|
 | transaction_id         | String                                   | A GUID in a String format dedicated to the share of the Prebid SSO data for one Addressable Content.|
+| source                 | Source object                            | The source contains data for identifying and trusting the Publisher.<br /><table><tr><th>Field</th><th>Type</th><th>Details</th></tr><tr><td>domain</td><td>String</td><td>The domain of the Root Party (Publisher in most of the cases).</td></tr><tr><td>timestamp</td><td>Integer</td><td>The timestamp of the signature.</td></tr><tr><td>signature</td><td>String</td><td>Encoded signature in UTF-8 of the Root Party/Publisher.</td></tr></table>|
+
+The Body object:
+| Field                  | Type                                     | Details  |
+|------------------------|------------------------------------------|----------|
 | preferences            | Preferences object                       | The Preferences of the user.|
 | identifiers            | Array of Pseudonymous-Identifier objects | The Pseudonymous-Identifiers of the user. For now, it only contains a Prebid ID.|
-| source                 | Source object                            | The source contains data for identifying and trusting the Publisher.<br /><table><tr><th>Field</th><th>Type</th><th>Details</th></tr><tr><td>domain</td><td>String</td><td>The domain of the Root Party (Publisher in most of the cases).</td></tr><tr><td>timestamp</td><td>Integer</td><td>The timestamp of the signature.</td></tr><tr><td>signature</td><td>String</td><td>Encoded signature in UTF-8 of the Root Party/Publisher.</td></tr></table>|
-<!--partial-end-->
+
 
 <!--partial-begin { "files": [ "preferences-table.md" ] } -->
 The Preferences object list all the preferences of a user in a dictionary. For
@@ -193,7 +195,160 @@ Example:
 
 #### Offering inventory with Prebid.js
 
+##### Publisher configuration
 
+You can configure `prebid.js` so that it calls back you when it requires
+Transmission signatures and Transaction signatures sign your Addressable 
+Content Server and your Prebid SSO cookies. For this purpose, you need to 
+update [the bootstrap](https://docs.prebid.org/dev-docs/getting-started.html) 
+of `pbjs` with the properties `getSsoSignatures` with the call 
+of your Addressable Content Server.
+
+```js
+pbjs.getSsoSignatures = function(onLoad) {
+    const http = new XMLHttpRequest();
+    http.onreadystatechange  = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            var ssoSignatures = JSON.parse(this.responseText);
+            onLoad(ssoSignatures);
+        }
+    }
+    http.open("POST", "<Addressable Contente Server endpoint>", false);
+    // configuration of your request.
+    http.send();
+}
+```
+
+##### Adaptator code
+
+To use Prebid SSO, Prebid.js will extend its [Build Request API](https://docs.prebid.org/dev-docs/bidder-adaptor.html#building-the-request) 
+so that the Adaptors get the Prebid SSO Data.
+
+Each adunit has an extra `ssoSignature` string which represent the digital 
+signature of the Prebid SSO data for the given adunit:
+
+```js
+[{
+  adUnitCode: "test-div"
+  auctionId: "b06c5141-fe8f-4cdf-9d7d-54415490a917"
+  ...
+  transactionId: "54a58774-7a41-494e-9aaf-fa7b79164f0c"
+  ssoSignature: "304502204a7ee942fdaed0dcb43c...f35271510d"
+}]
+```
+
+The `bidderRequest` has an extra `sso` object which contains the Prebid 
+SSO Data of the user:
+
+```js
+{
+    auctionId: "b06c5141-fe8f-4cdf-9d7d-54415490a917",
+    gdprConsent: {
+        consentString: "BOtmiBKOtmiBKABABAENAFAAAAACeAAA",
+        vendorData: {...},
+        gdprApplies: true
+    },
+    ...
+    sso: {
+        preferences: {
+            version: 1,
+            data: {
+                opt_in: true
+            },
+            source: {
+                domain: "cmpC.com",
+                timestamp: 1639643112,
+                signature: "preferences_signature_xyz12345"
+            }
+        },
+        identifiers: [
+            {
+                version: 1,
+                type: "prebid_id",
+                value: "7435313e-caee-4889-8ad7-0acd0114ae3c",
+                source: {
+                    domain: "operator0.com",
+                    timestamp: 1639643110,
+                    signature: "prebid_id_signature_xyz12345"
+                }
+            }
+        ]
+    }
+}
+```
+
+
+ℹ️  `TransactionId` already exist in the AdUnit.
+
+So the buildRequest function can use the Prebid SSO Data to generate
+its requests.
+
+```js
+buildRequests: function(validBidRequests, bidderRequest) {
+    const tags = validBidRequests.map(adUnit => {
+        const tag = {};
+        // Build your internal object for the AdUnit
+        // ...
+        tag.transactionId = adUnit.transactionId;
+        if (adUnit.ssoSignature) {
+            tag.ssoSignature = adUnit.ssoSignature;
+        }
+    });
+
+    // Retrive the Prebid SSO Data
+    let prebidId = null;
+    let prebidPreferences = null;
+    if (bidderRequest.sso) {
+        prebidId = bidderRequest.sso.find(id => { id.type == "prebid_id" });
+        prebidPreferences = bidderRequest.sso.preferences;
+    }
+
+    //...
+    const request = formatRequest(tags, prebidId, prebidPreferences);
+    return request;
+}
+```
+
+Then Prebid.js will extend the [Interpreting Request API](https://docs.prebid.org/dev-docs/bidder-adaptor.html#interpreting-the-response) so that the Adaptors
+can return the Transmission Result.
+
+The `bidResponse` has an extra parameter named `sso`. It contains a list of 
+Transmission Results. This list must contains all the Transmission Results 
+that have occured for the given bid.
+
+```js
+{
+    requestId: BID_ID,
+    cpm: CPM,
+    //...
+    sso: {
+        transmissions: [
+            {
+                version: 0,
+                receiver: "ssp1.com",
+                status: "SUCCESS",
+                details: "",
+                source: {
+                    domain: "ssp1.com",
+                    timestamp: 1639583000,
+                    signature: "12345_signature"
+                },
+            },
+             {
+                version: 0,
+                receiver: "dsp1.com",
+                status: "SUCCESS",
+                details: "",
+                source: {
+                    domain: "dsp1.com",
+                    timestamp: 1639583000,
+                    signature: "12345_signature"
+                },
+            },
+        ]
+    }
+};
+```
 
 ##
 
